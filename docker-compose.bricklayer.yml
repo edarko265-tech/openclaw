@@ -1,0 +1,58 @@
+# Docker Compose for Bricklayer-β Agent
+# Usage: docker compose -f docker-compose.bricklayer.yml up -d
+
+services:
+  openclaw-gateway:
+    image: ${OPENCLAW_IMAGE:-openclaw:local}
+    container_name: bricklayer-gateway
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      # Gateway auth
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      # Model API keys
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      # Telegram
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      # Agent social platforms
+      DISCLAWD_BEARER_TOKEN: ${DISCLAWD_BEARER_TOKEN}
+      PINCHSOCIAL_API_KEY: ${PINCHSOCIAL_API_KEY}
+      # Web search
+      BRAVE_API_KEY: ${BRAVE_API_KEY}
+    volumes:
+      # Mount your existing config and workspace
+      - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
+    ports:
+      # Use different host ports to avoid conflict with macOS app
+      - "127.0.0.1:${OPENCLAW_GATEWAY_PORT:-28789}:18789"
+      - "127.0.0.1:${OPENCLAW_BRIDGE_PORT:-28790}:18790"
+    init: true
+    restart: unless-stopped
+    command: [ "node", "dist/index.js", "gateway", "--bind", "lan", "--port", "18789" ]
+
+  openclaw-cli:
+    image: ${OPENCLAW_IMAGE:-openclaw:local}
+    container_name: bricklayer-cli
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      BROWSER: echo
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      DISCLAWD_BEARER_TOKEN: ${DISCLAWD_BEARER_TOKEN}
+      PINCHSOCIAL_API_KEY: ${PINCHSOCIAL_API_KEY}
+      # Connect to gateway via Docker network
+      OPENCLAW_GATEWAY_URL: ws://openclaw-gateway:18789
+    volumes:
+      - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
+    stdin_open: true
+    tty: true
+    init: true
+    depends_on:
+      - openclaw-gateway
+    profiles:
+      - cli
+    entrypoint: [ "node", "dist/index.js" ]
