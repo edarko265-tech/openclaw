@@ -1,0 +1,28 @@
+name: CleanOps Wave2 Checks
+
+on:
+  pull_request:
+    branches:
+      - feat/cleanops-nexus-kickoff
+    paths:
+      - projects/cleanops-nexus/**
+      - .github/workflows/cleanops-wave2-checks.yml
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify project packet files exist
+        run: |
+          test -f projects/cleanops-nexus/docs/PROJECT_BRIEF.md
+          test -f projects/cleanops-nexus/docs/SYSTEM_ARCHITECTURE.md
+          test -f projects/cleanops-nexus/docs/API_CONTRACTS_V1.md
+          test -f projects/cleanops-nexus/docs/WAVE2_TEST_MATRIX.md
+
+      - name: Basic markdown health
+        run: |
+          grep -R "^#" projects/cleanops-nexus/docs >/dev/null
+          echo "CleanOps Wave2 docs check passed"
