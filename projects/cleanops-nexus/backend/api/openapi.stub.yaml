@@ -1,0 +1,53 @@
+openapi: 3.1.0
+info:
+  title: CleanOps Nexus API
+  version: 0.1.0
+servers:
+  - url: https://api.cleanops.example/v1
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service is healthy
+  /tenants/me:
+    get:
+      summary: Get current tenant context
+      responses:
+        "200":
+          description: Tenant context
+  /auth/login:
+    post:
+      summary: Authenticate user
+      requestBody:
+        required: true
+      responses:
+        "200":
+          description: Auth success
+  /jobs:
+    get:
+      summary: List jobs for tenant
+      responses:
+        "200":
+          description: Job list
+    post:
+      summary: Create job
+      requestBody:
+        required: true
+      responses:
+        "201":
+          description: Job created
+components:
+  schemas:
+    TenantContext:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        plan:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
